@@ -1,34 +1,54 @@
+// login_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '/states/login_state.dart';
 import '/blocs/login_cubit.dart';
 
 class LoginScreen extends StatelessWidget {
-  LoginScreen({super.key});
+  LoginScreen({Key? key}) : super(key: key);
 
-  //controladores de texto de nombre de usuario y contraseña
+  // Controladores de texto de nombre de usuario y contraseña
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
-    BlocProvider.of<LoginCubit>(context);
     _usernameController.text = '';
     _passwordController.text = '';
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Inicio de sesion"),
+        title: const Text("Inicio de sesión"),
       ),
       body: Padding(
         padding: const EdgeInsets.all(45.0),
         child: Form(
           key: _formKey,
-          child: BlocBuilder<LoginCubit, LoginState>(
-            builder: (context, state) => BlocProvider.of<LoginCubit>(context)
-                    .state
-                    .isLoading
+          child: BlocConsumer<LoginCubit, LoginState>(
+            listener: (context, state) {
+              if (state.isLoading) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Cargando...'),
+                  ),
+                );
+              } else if (state.isLogged) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Credenciales correctas'),
+                  ),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Usuario o contraseña incorrectos'),
+                  ),
+                );
+              }
+            },
+            builder: (context, state) => (state.isLoading)
                 ? const Center(child: CircularProgressIndicator())
                 : Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -40,7 +60,7 @@ class LoginScreen extends StatelessWidget {
                         ),
                         validator: (value) {
                           if (value!.isEmpty) {
-                            return 'Porfavor ingrese su nombre de usuario';
+                            return 'Por favor ingrese su nombre de usuario';
                           }
                           return null;
                         },
@@ -54,7 +74,7 @@ class LoginScreen extends StatelessWidget {
                         ),
                         validator: (value) {
                           if (value!.isEmpty) {
-                            return 'Porfavor ingrese su contraseña';
+                            return 'Por favor ingrese su contraseña';
                           }
                           return null;
                         },
@@ -63,32 +83,8 @@ class LoginScreen extends StatelessWidget {
                       ElevatedButton(
                         onPressed: () async {
                           if (_formKey.currentState!.validate()) {
-                            //
                             await BlocProvider.of<LoginCubit>(context)
-                                .login(_usernameController.text,
-                                    _passwordController.text);
-                            if (state.isLoading) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Cargando...'),
-                                ),
-                              );
-                            } 
-                            else if (state.isLogged) {
-                                                            ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content:
-                                      Text('Credenciales correctas'),
-                                ),
-                              );
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content:
-                                      Text('Usuario o contraseña incorrectos'),
-                                ),
-                              );
-                            }
+                                .login(_usernameController.text, _passwordController.text);
                           }
                         },
                         child: const Text('Ingresar'),
